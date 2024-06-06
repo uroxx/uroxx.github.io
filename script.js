@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
     memory.addEventListener('click', (e) => {
       if (!e.target.matches('.menu, .menu *')) {
-        window.open(`read.html?title=${encodeURIComponent(title)}`, '_blank');
+        window.open(`${title}.txt`, '_blank');
       }
     });
     memory.querySelector('.menu').addEventListener('click', (e) => {
@@ -65,93 +65,62 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.deleteMemory = (title) => {
     if (confirm(`${title} adlı anıyı silmek istediğinize emin misiniz?`)) {
-      fetch(`https://api.github.com/repos/uroxx/uroxx.github.io/contents/notes.txt`, {
-        method: 'GET',
+      // Silme işlemi burada gerçekleştirilir
+      fetch(`${title}.txt`, {
+        method: 'DELETE',
         headers: {
-          'Authorization': 'token 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'
+          'Content-Type': 'application/json'
         }
       })
-      .then(response => response.json())
-      .then(data => {
-        const content = JSON.parse(atob(data.content));
-        const updatedMemories = content.filter(memory => memory.title !== title);
-        const updatedContent = btoa(JSON.stringify(updatedMemories));
-
-        fetch(`https://api.github.com/repos/uroxx/uroxx.github.io/contents/notes.txt`, {
-          method: 'PUT',
-          headers: {
-            'Authorization': 'token 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',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            message: 'Delete memory',
-            content: updatedContent,
-            sha: data.sha
-          })
-        }).then(response => {
-          if (!response.ok) {
-            console.error('Anı silinemedi:', response.statusText);
-          }
-        }).catch(error => {
-          console.error('Anı silinemedi:', error);
-        });
-
-        document.querySelector(`.memory:contains('${title}')`).remove();
-      }).catch(error => {
-        console.error('Anılar yüklenemedi:', error);
+      .then(response => {
+        if (!response.ok) {
+          console.error('Anı silinemedi:', response.statusText);
+        } else {
+          document.querySelector(`.memory:contains('${title}')`).remove();
+        }
+      })
+      .catch(error => {
+        console.error('Anı silinemedi:', error);
       });
     }
   };
 
   function saveMemory(title, description, content) {
-    fetch(`https://api.github.com/repos/uroxx/uroxx.github.io/contents/notes.txt`, {
-      method: 'GET',
-      headers: {
-        'Authorization': 'token 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'
+    const data = `${description}\n${content}`;
+    fetch(`${title}.txt`, {
+      method: 'PUT',
+      body: data
+    })
+    .then(response => {
+      if (!response.ok) {
+        console.error('Anı kaydedilemedi:', response.statusText);
       }
     })
-    .then(response => response.json())
-    .then(data => {
-      const fileContent = JSON.parse(atob(data.content));
-      const updatedContent = [...fileContent, { title, description, content }];
-      fetch(`https://api.github.com/repos/uroxx/uroxx.github.io/contents/notes.txt`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': 'token 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',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          message: 'Add new memory',
-          content: btoa(JSON.stringify(updatedContent)),
-          sha: data.sha
-        })
-      }).then(response => {
-        if (!response.ok) {
-          console.error('Anı kaydedilemedi:', response.statusText);
-        }
-      }).catch(error => {
-        console.error('Anı kaydedilemedi:', error);
-      });
-    }).catch(error => {
+    .catch(error => {
       console.error('Anı kaydedilemedi:', error);
     });
   }
 
   function loadMemories() {
-    fetch('https://api.github.com/repos/uroxx/uroxx.github.io/contents/notes.txt', {
-      headers: {
-        'Authorization': 'token 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'
-      }
-    })
-    .then(response => response.json())
+    // Anılardan oluşan bir dosya listesi alınır ve her biri yüklenebilir
+    fetch('memory_list.txt')
+    .then(response => response.text())
     .then(data => {
-      const content = JSON.parse(atob(data.content));
-      content.forEach(memory => {
-        const { title, description, content } = memory;
-        addMemory(title, description, content);
+      const memoryList = data.split('\n').filter(line => line.trim() !== '');
+      memoryList.forEach(memory => {
+        fetch(memory)
+        .then(response => response.text())
+        .then(data => {
+          const [title, description, content] = data.split('\n');
+          addMemory(title, description, content);
+        })
+        .catch(error => {
+          console.error('Anı yüklenemedi:', error);
+        });
       });
-    }).catch(error => {
-      console.error('Anılar yüklenemedi:', error);
+    })
+    .catch(error => {
+      console.error('Anı listesi yüklenemedi:', error);
     });
   }
 

@@ -1,0 +1,123 @@
+body {
+  background-color: #f4f4a6;
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+}
+
+#banner {
+  width: 100%;
+  background-color: #ffd700;
+  padding: 10px 0;
+  text-align: center;
+  font-size: 1.5em;
+  font-weight: bold;
+  position: fixed;
+  top: 0;
+  left: 0;
+}
+
+#banner-text {
+  display: inline-block;
+  animation: scroll 10s linear infinite;
+}
+
+@keyframes scroll {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+#container {
+  width: 90%;
+  max-width: 1200px;
+  background-color: #fffbe6;
+  border: 1px solid #ccc;
+  display: flex;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin-top: 60px; /* Add margin to avoid overlapping with the banner */
+}
+
+#form-container, #memory-container {
+  width: 100%;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+h1, h2 {
+  text-align: center;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+input, textarea, button {
+  margin: 10px 0;
+  padding: 10px;
+  font-size: 1em;
+}
+
+button {
+  background-color: #ffd700;
+  border: none;
+  cursor: pointer;
+}
+
+#memories {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.memory {
+  background: linear-gradient(white 85%, rgba(0, 0, 0, 0.1) 85%);
+  background-size: 100% 40px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  cursor: pointer;
+  position: relative;
+}
+
+.memory h2 {
+  margin: 0;
+  font-size: 1em;
+}
+
+.memory p {
+  margin: 5px 0;
+  font-size: 0.9em;
+  font-weight: bold;
+}
+
+.memory .menu {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+  font-size: 1.5em;
+}
+
+.memory .menu-content {
+  display: none;
+  position: absolute;
+  top: 20px;
+  right: 0;
+  background-color: white;
+  border: 1px solid #ccc;
+  z-index: 1;
+}
+
+.memory .menu-content button {
+  background: none;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+}
+
+.memory .menu-content button:hover {
+  background-color: #ffd700;
+}

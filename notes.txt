@@ -1,2 +1,10 @@
-Başlık 1|Bu bir kısa bilgi.|Bu, tam anının içeriğidir.
-Başlık 2|İkinci anı hakkında bilgi.|İkinci anının içeriği burada.
+{
+  "title": "Anı Başlığı",
+  "description": "Anının açıklaması",
+  "content": "Anının içeriği"
+}
+{
+  "title": "Başka Bir Anı",
+  "description": "Bu anının farklı bir açıklaması",
+  "content": "Ve içeriği de farklı"
+}

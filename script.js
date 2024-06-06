@@ -23,9 +23,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   memoryForm.addEventListener('submit', event => {
     event.preventDefault();
-    const title = document.getElementById('title').value;
-    const description = document.getElementById('description').value;
-    const content = document.getElementById('content').value;
+    const title = document.getElementById('title').value.trim();
+    const description = document.getElementById('description').value.trim();
+    const content = document.getElementById('content').value.trim();
+
+    if (title === "" || description === "" || content === "") {
+      alert("Lütfen tüm alanları doldurun.");
+      return;
+    }
 
     saveMemory(title, description, content);
     addMemory(title, description, content);
@@ -76,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!response.ok) {
           console.error('Anı silinemedi:', response.statusText);
         } else {
-          document.querySelector(`.memory:contains('${title}')`).remove();
+          document.querySelector(`.memory h2:contains('${title}')`).parentNode.remove();
         }
       })
       .catch(error => {
@@ -106,7 +111,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function loadMemories() {
-    // Anılardan oluşan bir dosya listesi alınır ve her biri yüklenebilir
     fetch('memory_list.txt')
     .then(response => response.text())
     .then(data => {

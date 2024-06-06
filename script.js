@@ -65,10 +65,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.deleteMemory = (title) => {
     if (confirm(`${title} adlı anıyı silmek istediğinize emin misiniz?`)) {
-      // Silme işlemi burada gerçekleştirilir
       fetch(`${title}.txt`, {
         method: 'DELETE',
         headers: {
+          'Authorization': 'token ghp_11A45QA3Q0sNe4aZSoypff_d9pVedBFne5mYuCwjOf8BUCW0PTXRk7HZzRYDY0tiWbL4GK6LJ4RGF4sIYo',
           'Content-Type': 'application/json'
         }
       })
@@ -89,6 +89,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const data = `${description}\n${content}`;
     fetch(`${title}.txt`, {
       method: 'PUT',
+      headers: {
+        'Authorization': 'token ghp_11A45QA3Q0sNe4aZSoypff_d9pVedBFne5mYuCwjOf8BUCW0PTXRk7HZzRYDY0tiWbL4GK6LJ4RGF4sIYo',
+        'Content-Type': 'application/json'
+      },
       body: data
     })
     .then(response => {

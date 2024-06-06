@@ -110,23 +110,8 @@ document.addEventListener('DOMContentLoaded', () => {
     memory.innerHTML = `
       <h2>${title}</h2>
       <p>${description}</p>
-      <div class="menu">⋮
-        <div class="menu-content">
-          <button onclick="editMemory('${title}')">Düzenle</button>
-          <button onclick="deleteMemory('${title}', '${title}')">Sil</button>
-        </div>
-      </div>
+      <p>${content}</p>
     `;
-    memory.addEventListener('click', (e) => {
-      if (!e.target.matches('.menu, .menu *')) {
-        window.open(`read.html?title=${title}`, '_blank');
-      }
-    });
-    memory.querySelector('.menu').addEventListener('click', (e) => {
-      e.stopPropagation();
-      const menuContent = memory.querySelector('.menu-content');
-      menuContent.style.display = menuContent.style.display === 'block' ? 'none' : 'block';
-    });
     memoriesContainer.appendChild(memory);
   }
 

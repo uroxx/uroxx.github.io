@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
       },
       body: JSON.stringify({
         message: 'Yeni anı eklendi',
-        content: btoa(currentContent),
+        content: btoa(unescape(encodeURIComponent(currentContent))),
         sha: await fetchSha()
       })
     });
@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (response.ok) {
       const data = await response.json();
-      return atob(data.content);
+      return decodeURIComponent(escape(atob(data.content)));
     } else if (response.status === 404) {
       return '';
     } else {

@@ -20,10 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const memoryForm = document.getElementById('memoryForm');
   const memoriesContainer = document.getElementById('memories');
-  const GITHUB_TOKEN = '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';
-  const REPO_OWNER = 'uroxx';
-  const REPO_NAME = 'uroxx.github.io';
-  const FILE_PATH = 'notes.txt';
 
   memoryForm.addEventListener('submit', event => {
     event.preventDefault();
@@ -36,74 +32,6 @@ document.addEventListener('DOMContentLoaded', () => {
     memoryForm.reset();
   });
 
-  async function saveMemory(title, description, content) {
-    const memory = `${title}\n${description}\n${content}\n---\n`;
-    let currentContent = await fetchContent();
-
-    currentContent += memory;
-
-    const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `token ${GITHUB_TOKEN}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        message: 'Yeni anı eklendi',
-        content: btoa(unescape(encodeURIComponent(currentContent))),
-        sha: await fetchSha()
-      })
-    });
-
-    if (!response.ok) {
-      console.error('Anı kaydedilemedi:', response.statusText);
-    }
-  }
-
-  async function fetchContent() {
-    const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
-      headers: {
-        'Authorization': `token ${GITHUB_TOKEN}`
-      }
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      return decodeURIComponent(escape(atob(data.content)));
-    } else if (response.status === 404) {
-      return '';
-    } else {
-      console.error('Dosya içeriği alınamadı:', response.statusText);
-      return '';
-    }
-  }
-
-  async function fetchSha() {
-    const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
-      headers: {
-        'Authorization': `token ${GITHUB_TOKEN}`
-      }
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      return data.sha;
-    } else {
-      return '';
-    }
-  }
-
-  async function loadMemories() {
-    const content = await fetchContent();
-    const memories = content.split('---\n').filter(memory => memory.trim() !== '');
-    
-    memories.forEach(memory => {
-      const [title, description, ...contentArr] = memory.split('\n');
-      const content = contentArr.join('\n');
-      addMemory(title, description, content);
-    });
-  }
-
   function addMemory(title, description, content) {
     const memory = document.createElement('div');
     memory.classList.add('memory');
@@ -111,8 +39,122 @@ document.addEventListener('DOMContentLoaded', () => {
       <h2>${title}</h2>
       <p>${description}</p>
       <p>${content}</p>
+      <div class="menu">⋮
+        <div class="menu-content">
+          <button onclick="editMemory('${title}')">Düzenle</button>
+          <button onclick="deleteMemory('${title}')">Sil</button>
+        </div>
+      </div>
     `;
+    memory.addEventListener('click', (e) => {
+      if (!e.target.matches('.menu, .menu *')) {
+        window.open(`read.html?title=${encodeURIComponent(title)}`, '_blank');
+      }
+    });
+    memory.querySelector('.menu').addEventListener('click', (e) => {
+      e.stopPropagation();
+      const menuContent = memory.querySelector('.menu-content');
+      menuContent.style.display = menuContent.style.display === 'block' ? 'none' : 'block';
+    });
     memoriesContainer.appendChild(memory);
+  }
+
+  window.editMemory = (title) => {
+    window.open(`edit.html?title=${encodeURIComponent(title)}`, '_blank');
+  };
+
+  window.deleteMemory = (title) => {
+    if (confirm(`${title} adlı anıyı silmek istediğinize emin misiniz?`)) {
+      fetch(`https://api.github.com/repos/uroxx/uroxx.github.io/contents/notes.txt`, {
+        method: 'GET',
+        headers: {
+          'Authorization': 'token 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'
+        }
+      })
+      .then(response => response.json())
+      .then(data => {
+        const content = atob(data.content);
+        const memories = content.split('\n').filter(line => line.trim() !== '');
+        const updatedMemories = memories.filter(memory => !memory.startsWith(`${title}|`));
+        const updatedContent = updatedMemories.join('\n');
+
+        fetch(`https://api.github.com/repos/uroxx/uroxx.github.io/contents/notes.txt`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': 'token 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',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            message: 'Delete memory',
+            content: btoa(updatedContent),
+            sha: data.sha
+          })
+        }).then(response => {
+          if (!response.ok) {
+            console.error('Anı silinemedi:', response.statusText);
+          }
+        }).catch(error => {
+          console.error('Anı silinemedi:', error);
+        });
+
+        document.querySelector(`.memory:contains('${title}')`).remove();
+      }).catch(error => {
+        console.error('Anılar yüklenemedi:', error);
+      });
+    }
+  };
+
+  function saveMemory(title, description, content) {
+    fetch(`https://api.github.com/repos/uroxx/uroxx.github.io/contents/notes.txt`, {
+      method: 'GET',
+      headers: {
+        'Authorization': 'token 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'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      const fileContent = atob(data.content);
+      const updatedContent = fileContent + `\n${title}|${description}|${content}`;
+      fetch(`https://api.github.com/repos/uroxx/uroxx.github.io/contents/notes.txt`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': 'token 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',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: 'Add new memory',
+          content: btoa(updatedContent),
+          sha: data.sha
+        })
+      }).then(response => {
+        if (!response.ok) {
+          console.error('Anı kaydedilemedi:', response.statusText);
+        }
+      }).catch(error => {
+        console.error('Anı kaydedilemedi:', error);
+      });
+    }).catch(error => {
+      console.error('Anı kaydedilemedi:', error);
+    });
+  }
+
+  function loadMemories() {
+    fetch('https://api.github.com/repos/uroxx/uroxx.github.io/contents/notes.txt', {
+      headers: {
+        'Authorization': 'token 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'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      const content = atob(data.content);
+      const memories = content.split('\n').filter(line => line.trim() !== '');
+      memories.forEach(memory => {
+        const [title, description, text] = memory.split('|');
+        addMemory(title, description, text);
+      });
+    }).catch(error => {
+      console.error('Anılar yüklenemedi:', error);
+    });
   }
 
   loadMemories();

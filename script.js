@@ -73,10 +73,9 @@ document.addEventListener('DOMContentLoaded', () => {
       })
       .then(response => response.json())
       .then(data => {
-        const content = atob(data.content);
-        const memories = content.split('\n').filter(line => line.trim() !== '');
-        const updatedMemories = memories.filter(memory => !memory.startsWith(`${title}|`));
-        const updatedContent = updatedMemories.join('\n');
+        const content = JSON.parse(atob(data.content));
+        const updatedMemories = content.filter(memory => memory.title !== title);
+        const updatedContent = btoa(JSON.stringify(updatedMemories));
 
         fetch(`https://api.github.com/repos/uroxx/uroxx.github.io/contents/notes.txt`, {
           method: 'PUT',
@@ -86,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
           },
           body: JSON.stringify({
             message: 'Delete memory',
-            content: btoa(updatedContent),
+            content: updatedContent,
             sha: data.sha
           })
         }).then(response => {
@@ -113,8 +112,8 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     .then(response => response.json())
     .then(data => {
-      const fileContent = atob(data.content);
-      const updatedContent = fileContent + `\n${title}|${description}|${content}`;
+      const fileContent = JSON.parse(atob(data.content));
+      const updatedContent = [...fileContent, { title, description, content }];
       fetch(`https://api.github.com/repos/uroxx/uroxx.github.io/contents/notes.txt`, {
         method: 'PUT',
         headers: {
@@ -123,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         body: JSON.stringify({
           message: 'Add new memory',
-          content: btoa(updatedContent),
+          content: btoa(JSON.stringify(updatedContent)),
           sha: data.sha
         })
       }).then(response => {
@@ -146,11 +145,10 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     .then(response => response.json())
     .then(data => {
-      const content = atob(data.content);
-      const memories = content.split('\n').filter(line => line.trim() !== '');
-      memories.forEach(memory => {
-        const [title, description, text] = memory.split('|');
-        addMemory(title, description, text);
+      const content = JSON.parse(atob(data.content));
+      content.forEach(memory => {
+        const { title, description, content } = memory;
+        addMemory(title, description, content);
       });
     }).catch(error => {
       console.error('Anılar yüklenemedi:', error);
